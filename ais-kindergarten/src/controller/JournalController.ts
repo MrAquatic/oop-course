@@ -1,14 +1,14 @@
 import { AppDataSource } from "../data-source";
 import { NextFunction, Request, Response } from "express";
 import { Journal } from "../entity/Journal";
-import { JournalUser } from "../view-entity/JournalUser";
+import { JournalView } from "../view-entity/JournalView";
 import * as moment from "moment"
 
 export class JournalController
 {
 
     private journalRepository = AppDataSource.getRepository(Journal);
-    private journalUserRepository = AppDataSource.getRepository(JournalUser);
+    private journalViewRepository = AppDataSource.getRepository(JournalView);
 
     async byDateAndGroup(request: Request, response: Response, next: NextFunction)
     {
@@ -19,6 +19,13 @@ export class JournalController
             return null;
         }
 
-        return this.journalUserRepository.findBy({ date: request.params.date, groupId: Number(request.params.groupId) });
+        return this.journalViewRepository.findBy({ date: request.params.date, groupId: Number(request.params.groupId) });
+    }
+
+    async toggleMark(request: Request, response: Response, next: NextFunction)
+    {
+        let journalEntryToUpdate = await this.journalRepository.findOneBy({ id: Number(request.params.id) });
+        journalEntryToUpdate.was = !journalEntryToUpdate.was;
+        return await this.journalRepository.save(journalEntryToUpdate);
     }
 }

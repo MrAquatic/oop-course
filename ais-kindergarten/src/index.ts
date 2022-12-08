@@ -7,6 +7,9 @@ import { Routes } from "./routes";
 import { User } from "./entity/User";
 import { Group } from "./entity/Group";
 import { Journal } from "./entity/Journal";
+import { ContractType } from "./entity/ContractType";
+import { Contract } from "./entity/Contract";
+import { Contractor } from "./entity/Contractor";
 
 AppDataSource.initialize().then(async () =>
 {
@@ -97,6 +100,64 @@ AppDataSource.initialize().then(async () =>
         })
     );
 
-    console.log("Express server has started on port 4000. Open http://localhost:4000/users to see results");
+    // Проделаем тоже самое, но для контрактов.
+
+    // Создадим типы контрактов.
+    const type1 = AppDataSource.manager.create(ContractType, {
+        name: "Помидоры"
+    });
+
+    const type2 = AppDataSource.manager.create(ContractType, {
+        name: "Яблоки"
+    });
+
+    const type3 = AppDataSource.manager.create(ContractType, {
+        name: "Картопля"
+    });
+
+    const type4 = AppDataSource.manager.create(ContractType, {
+        name: "'Царь-бомба' (АН-602)"
+    });
+
+    await AppDataSource.manager.save(type1);
+    await AppDataSource.manager.save(type2);
+    await AppDataSource.manager.save(type3);
+    await AppDataSource.manager.save(type4);
+
+    // Создадим поставщиков.
+    const contractor1 = AppDataSource.manager.create(Contractor, {
+        name: "ООО 'Рога и копыта'"
+    });
+
+    const contractor2 = AppDataSource.manager.create(Contractor, {
+        name: "ООО 'Вкусно - и точка'"
+    });
+
+    await AppDataSource.manager.save(contractor1);
+    await AppDataSource.manager.save(contractor2);
+
+    // Добавим контракты.
+    const contract1 = AppDataSource.manager.create(Contract, {
+        contractType: type1,
+        contractor: contractor1,
+        date: "2022-12-08",
+        count: 5,
+        price: 150,
+        total: 5 * 150
+    });
+
+    const contract2 = AppDataSource.manager.create(Contract, {
+        contractType: type4,
+        contractor: contractor2,
+        date: "2022-12-09",
+        count: 1,
+        price: 10000,
+        total: 1 * 10000
+    });
+
+    await AppDataSource.manager.save(contract1);
+    await AppDataSource.manager.save(contract2);
+
+    console.log("Express server has started on port 4000.");
 
 }).catch(error => console.log(error));

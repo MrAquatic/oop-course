@@ -1,8 +1,9 @@
 import React, { ChangeEvent, useState, useEffect } from "react";
-import { Alert, Container, Form, Table } from "react-bootstrap";
+import { Alert, Button, Container, Form, Table } from "react-bootstrap";
 import { API_URL } from "../index";
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
+import { toISOLikeString } from "../Utils";
 
 type JournalData = {
     journalId: number,
@@ -35,9 +36,10 @@ export const JournalPage: React.FC = () =>
                     <th>Имя</th>
                     <th>Фамилия</th>
                     <th>Присутствовал?</th>
+                    <th>Действие</th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody className="align-middle">
                 {
                     journalList.map((user, index) =>
                     {
@@ -47,6 +49,7 @@ export const JournalPage: React.FC = () =>
                                 <td>{user.firstName}</td>
                                 <td>{user.lastName}</td>
                                 <td>{user.was === true ? "+" : "-"}</td>
+                                <td><Button variant="warning" onClick={() => handleClickMarkButton(user.journalId)}>{user.was === true ? "Снять отметку" : "Отметить"}</Button></td>
                             </tr>
                         );
                     })
@@ -75,6 +78,31 @@ export const JournalPage: React.FC = () =>
         setGroupId(ev.target.value);
     };
 
+    const handleClickMarkButton = async (journalId: number) =>
+    {
+        const settings = {
+            method: "POST"
+        };
+
+        let response = await fetch(`${API_URL}/journal/${journalId}`, settings);
+
+        if (response.status === 200)
+        {
+            let newJournalList = journalList.map((val) =>
+            {
+
+                if (val.journalId === journalId)
+                {
+                    val.was = !val.was;
+                }
+
+                return val;
+            });
+
+            setJournalList(newJournalList);
+        }
+    };
+
     // Загрузка списка групп.
     useEffect(() =>
     {
@@ -88,14 +116,6 @@ export const JournalPage: React.FC = () =>
 
     }, []);
 
-    const toISOLikeString = (d: Date) =>
-    {
-        return `${d.getFullYear()
-            }-${`${d.getMonth() + 1}`.padStart(2, '0')
-            }-${`${d.getDate()}`.padStart(2, '0')
-            }`;
-    };
-
     useEffect(() =>
     {
         const fetchJournalData = async () =>
@@ -105,11 +125,7 @@ export const JournalPage: React.FC = () =>
             // Очищаем.
             setJournalList([]);
 
-            console.log(date);
-
             const inputDate = toISOLikeString(date);
-
-            console.log(inputDate);
 
             let response = await fetch(`${API_URL}/journal/${inputDate}/${groupId}`);
             setJournalList(await response.json());
